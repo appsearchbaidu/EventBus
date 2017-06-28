@@ -45,6 +45,9 @@ public class EventBus {
 
     static volatile EventBus defaultInstance;
 
+    /** eventbusbuilder instance */
+    static volatile EventBusBuilder eventBusBuilderInstance;
+
     private static final EventBusBuilder DEFAULT_BUILDER = new EventBusBuilder();
     private static final Map<Class<?>, List<Class<?>>> eventTypesCache = new HashMap<>();
 
@@ -79,7 +82,13 @@ public class EventBus {
         if (defaultInstance == null) {
             synchronized (EventBus.class) {
                 if (defaultInstance == null) {
-                    defaultInstance = new EventBus();
+
+                    if (eventBusBuilderInstance != null) {
+                        defaultInstance = eventBusBuilderInstance.installDefaultEventBus();
+                    }else {
+                        defaultInstance = new EventBus();
+                    }
+
                 }
             }
         }
@@ -87,7 +96,8 @@ public class EventBus {
     }
 
     public static EventBusBuilder builder() {
-        return new EventBusBuilder();
+        eventBusBuilderInstance = new EventBusBuilder();
+        return eventBusBuilderInstance;
     }
 
     /** For unit test primarily. */

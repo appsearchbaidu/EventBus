@@ -19,13 +19,16 @@ package org.greenrobot.eventbusperf.testsubject;
 import android.content.Context;
 
 import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.EventBusBuilder;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.List;
 
+import org.greenrobot.eventbus.meta.SubscriberInfoIndex;
 import org.greenrobot.eventbusperf.MyEventBusIndex;
 import org.greenrobot.eventbusperf.Test;
 import org.greenrobot.eventbusperf.TestEvent;
@@ -41,8 +44,14 @@ public abstract class PerfTestEventBus extends Test {
 
     public PerfTestEventBus(Context context, TestParams params) {
         super(context, params);
-        eventBus = EventBus.builder().eventInheritance(params.isEventInheritance()).addIndex(new MyEventBusIndex())
-                .ignoreGeneratedIndex(params.isIgnoreGeneratedIndex()).build();
+        eventBus = EventBus.builder().eventInheritance(params.isEventInheritance()).setAddSubscriberInfoIndexsCallback(new EventBusBuilder.AddSubscriberInfoIndexsCallback() {
+            @Override
+            public List<SubscriberInfoIndex> getSubscriberInfoIndexs() {
+                List<SubscriberInfoIndex> indexs = new ArrayList<SubscriberInfoIndex>();
+                indexs.add(new MyEventBusIndex());
+                return indexs;
+            }
+        }).ignoreGeneratedIndex(params.isIgnoreGeneratedIndex()).build();
         subscribers = new ArrayList<Object>();
         eventCount = params.getEventCount();
         expectedEventCount = eventCount * params.getSubscriberCount();
