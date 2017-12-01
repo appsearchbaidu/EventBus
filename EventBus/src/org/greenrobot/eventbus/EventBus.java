@@ -142,12 +142,21 @@ public class EventBus {
      * ThreadMode} and priority.
      */
     public void register(Object subscriber) {
+        /**
+         * 过滤重复注册 没加synchronized以提高性能,多线程并发时可能漏掉
+         */
         if (isRegistered(subscriber)) {
             return;
         }
         Class<?> subscriberClass = subscriber.getClass();
         List<SubscriberMethod> subscriberMethods = subscriberMethodFinder.findSubscriberMethods(subscriberClass);
         synchronized (this) {
+            /**
+             * 确保多线程并发时 过滤重复注册
+             */
+            if (isRegistered(subscriber)) {
+                return;
+            }
             for (SubscriberMethod subscriberMethod : subscriberMethods) {
                 subscribe(subscriber, subscriberMethod);
             }
